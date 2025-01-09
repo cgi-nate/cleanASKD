@@ -1,0 +1,26 @@
+version: '3.8'
+
+
+services:
+  postgres:
+    image: postgres:17
+    container_name: postgres-container
+    env_file:
+      - ./docker/postgres/.env
+    volumes:
+      - crewai_postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    networks:
+      - crewai_network
+    restart: unless-stopped
+  
+  # Define other services like qdrant here
+
+volumes:
+  crewai_postgres_data:
+    driver: local
+
+networks:
+  crewai_network:
+    driver: bridge
