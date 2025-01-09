@@ -1,5 +1,25 @@
 from crewai import Agent, Crew, Process, Task
+from crewai.llm import LLM
 from crewai.project import CrewBase, agent, crew, task
+from dotenv import load_dotenv
+import os
+
+load_dotenv()
+
+azure_endpoint = os.getenv("AZURE_OPENAI_ENDPOINT")
+api_key = os.getenv("OPENAI_API_KEY")
+azure_api_version = os.getenv("AZURE_OPENAI_VERSION")
+deployment_name = os.getenv("AZURE_OPENAI_DEPLOYMENT")
+model_name = os.getenv("AZURE_OPENAI_MODEL_NAME")
+
+custom_llm = LLM(
+	model=deployment_name,
+	base_url=azure_endpoint,
+	api_version=azure_api_version,
+	api_key=api_key,
+	azure=True,
+	temperature=0.3
+)
 
 # If you want to run a snippet of code before or after the crew starts, 
 # you can use the @before_kickoff and @after_kickoff decorators
@@ -21,14 +41,16 @@ class Oneaskdb():
 	def researcher(self) -> Agent:
 		return Agent(
 			config=self.agents_config['researcher'],
-			verbose=True
+			verbose=True,
+			llm=custom_llm
 		)
 
 	@agent
 	def reporting_analyst(self) -> Agent:
 		return Agent(
 			config=self.agents_config['reporting_analyst'],
-			verbose=True
+			verbose=True,
+			llm=custom_llm
 		)
 
 	# To learn more about structured task outputs, 
