@@ -1,0 +1,23 @@
+[project]
+name = "oneaskdb"
+version = "0.1.0"
+description = "oneaskdb using crewAI"
+authors = [{ name = "Your Name", email = "you@example.com" }]
+requires-python = ">=3.10,<3.13"
+dependencies = [
+    "crewai[tools]>=0.95.0,<1.0.0"
+]
+
+[project.scripts]
+oneaskdb = "oneaskdb.main:run"
+run_crew = "oneaskdb.main:run"
+train = "oneaskdb.main:train"
+replay = "oneaskdb.main:replay"
+test = "oneaskdb.main:test"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.crewai]
+type = "crew"
