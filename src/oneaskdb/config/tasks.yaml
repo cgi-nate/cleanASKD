@@ -1,17 +1,174 @@
-research_task:
-  description: >
-    Conduct a thorough research about {topic}
-    Make sure you find any interesting and relevant information given
-    the current year is 2024.
-  expected_output: >
-    A list with 10 bullet points of the most relevant information about {topic}
-  agent: researcher
+# src/yhatzi/config/tasks.yaml
 
-reporting_task:
+rewrite_query_task:
   description: >
-    Review the context you got and expand each topic into a full section for a report.
-    Make sure the report is detailed and contains any and all relevant information.
+    Refine the user's natural language query to make it more precise and structured, preparing it for SQL generation without using SQL keywords or structure.
+
+    <USER_QUERY>{user_query}</USER_QUERY>
+
+    Ensure the refined version:
+    - Avoids pleasantries (e.g., "Please give me..." or "Could you show the first...").
+    - Is direct and formal while maintaining the original meaning.
+    - Remains in natural language without SQL keywords or syntax.
+    - Applies issue type description constraints:
+        - Limit each issue type key to 30 characters or fewer.
+        - Follow provided format examples and guidelines for abbreviations and clarity.
+
   expected_output: >
-    A fully fledged report with the main topics, each with a full section of information.
-    Formatted as markdown without '```'
-  agent: reporting_analyst
+    A refined version of the user query, ready to be passed to the SQL Writer agent, with improved clarity and structure but no SQL keywords, syntax, pleasantries, or overly long issue type descriptions.
+
+sql_query_task:
+  description: >
+    Convert the following refined natural language query into a valid SQL query that can be executed on the database. Use the provided database schema to ensure that the correct tables and fields are used in the query.
+
+    <SCHEMA>{schema}</SCHEMA>
+
+    Here are your instructions:
+
+    1. **Understand User Queries:**
+       - Interpret the user's refined query about the database and its data.
+       - Use the provided schema to understand the database structure and relationships between tables.
+
+    2. **Generate SQL Queries:**
+       - Create accurate SQL queries that match the user's request.
+       - Ensure the queries are syntactically correct and optimized for PostgreSQL.
+       - Do not include any DML statements (INSERT, UPDATE, DELETE).
+
+    3. **Response Structure:**
+       - Provide the SQL query and execute it to obtain the results.
+       - Return a JSON object containing the SQL query and its results, formatted as specified.
+
+    4. **Formatting Guidelines:**
+       - Do not include any new line characters (\n) in the SQL query.
+       - Use uppercase for SQL keywords and proper casing for table and column names.
+       - Handle cases with no data or errors appropriately.
+       - When using 'WHERE' clause, use all caps for text conditions. For example 'WHERE account_status = 'OPEN';
+
+  expected_output: >
+    A JSON object containing the SQL query and its results, structured as follows:
+    {{
+        "query": "[Your SQL query here]",
+        "response": {{
+            "Query_1": [
+                {{
+                    "column1": "value1",
+                    "column2": "value2",
+                    ...
+                }},
+                ...
+            ]
+        }}
+    }}
+
+    Examples:
+
+    Example 1:
+    {{
+        "query": "SELECT parent_id, parent_birth_date, child_id, child_birth_date FROM family WHERE relationship = 'parent-child';",
+        "response": {{
+            "Query_1": [
+                {{
+                    "parent_id": 7216,
+                    "parent_birth_date": "1965-02-01T00:00:00",
+                    "child_id": 1019,
+                    "child_birth_date": "1995-03-04T00:00:00"
+                }},
+                ...
+            ]
+        }}
+    }}
+
+    Example 2:
+    {{
+        "query": "SELECT account_id FROM accounts WHERE balance < 0;",
+        "response": {{
+            "Query_1": [
+                {{
+                    "account_id": 444444418
+                }},
+                {{
+                    "account_id": 444444419
+                }},
+                ...
+            ]
+        }}
+    }}
+
+    Example 3:
+    {{
+        "query": "SELECT customer_id, reporting_date, cntry_of_ctnzshp, wh8_ind FROM customer WHERE cntry_of_ctnzshp = 'USA' AND wh8_ind = 'Y';",
+        "response": {{
+            "Query_1": [
+                {{
+                    "customer_id": 1011,
+                    "reporting_date": "2024-06-30T00:00:00",
+                    "cntry_of_ctnzshp": "USA",
+                    "wh8_ind": "Y"
+                }},
+                ...
+            ]
+        }}
+    }}
+
+    Example 4:
+    {{
+        "query": "SELECT product_id, product_name FROM products WHERE stock_quantity = 0;",
+        "response": {{
+            "Query_1": [
+                {{
+                    "product_id": 456,
+                    "product_name": "Wireless Mouse"
+                }},
+                ...
+            ]
+        }}
+    }}
+
+    Example 5:
+    {{
+        "query": "SELECT customer_id, name FROM customers WHERE customer_id NOT IN (SELECT customer_id FROM orders WHERE order_date >= CURRENT_DATE - INTERVAL '1 year');",
+        "response": {{
+            "Query_1": [
+                {{
+                    "customer_id": 123,
+                    "name": "Alice Smith"
+                }},
+                ...
+            ]
+        }}
+    }}
+
+    Ensure that:
+    - The SQL query is accurate and optimized.
+    - The results are formatted as shown.
+    - Handle cases with no data or errors appropriately.
+
+sql_qa_task:
+  description: >
+    Use the sql_qa_tool to assess the SQL query and results. 
+    
+    USER QUERY: {user_query}
+
+    IMPORTANT INSTRUCTIONS:
+    1. Call the sql_qa_tool with NO arguments
+    2. Return EXACTLY what the tool returns
+    3. Do NOT modify the tool's output
+    4. Do NOT make your own assessment
+    5. Do NOT add any additional information
+    6. Trust the tool's judgment completely
+
+    Example correct usage:
+    Thought: I will use the sql_qa_tool to assess the query
+    Using tool: sql_qa_tool
+    Tool Input: {{}}
+    Tool Output: {{tool's response}}
+    Final Answer: {{exact copy of tool's response}}
+
+  expected_output: >
+    The exact output from the sql_qa_tool, without any modifications or additional assessment.
+    
+    Example:
+    {{
+        "status": "Success",
+        "message": "The SQL query and results accurately reflect the user's intent and business logic."
+    }}
