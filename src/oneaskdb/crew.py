@@ -13,17 +13,14 @@ deployment_name = os.getenv("AZURE_OPENAI_DEPLOYMENT")
 model_name = os.getenv("AZURE_OPENAI_MODEL_NAME")
 
 custom_llm = LLM(
-	model=deployment_name,
+	model="azure/gpt4-test",
 	base_url=azure_endpoint,
 	api_version=azure_api_version,
 	api_key=api_key,
-	azure=True,
+	# azure=True,
 	temperature=0.3
 )
 
-# If you want to run a snippet of code before or after the crew starts, 
-# you can use the @before_kickoff and @after_kickoff decorators
-# https://docs.crewai.com/concepts/crews#example-crew-class-with-decorators
 
 @CrewBase
 class Oneaskdb():
